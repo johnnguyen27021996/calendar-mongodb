@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Calendar</title>
+    <style>
+        table {
+            border-collapse: collapse;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid #000000;
+            background: #e7e7e7;
+        }
+
+        th,
+        td {
+            width: 100px;
+            height: 80px;
+        }
+
+        td {
+            font-size: 16px;
+            color: red;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        td span {
+            display: inline-block;
+            transform: translateY(-30px);
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Calendar</h1>
+    <span class="pre">pre</span>|||||<span class="yearMonth">2019-10</span>|||||<span class="next">next</span>
+    <table>
+        <thead>
+            <th>SUN</th>
+            <th>MON</th>
+            <th>TUE</th>
+            <th>WEN</th>
+            <th>THU</th>
+            <th>FRI</th>
+            <th>SAT</th>
+        </thead>
+        <tbody class="showDay">
+            <!-- <tr>
+                <td></td>
+                <td></td>
+                <td>1</td>
+                <td>2</td>
+                <td>3</td>
+                <td>4</td>
+                <td>5</td>
+            </tr>
+            <tr>
+                <td>6</td>
+                <td>7</td>
+                <td>8</td>
+                <td>9</td>
+                <td>10</td>
+                <td>11</td>
+                <td>12</td>
+            </tr>
+            <tr>
+                <td>13</td>
+                <td>14</td>
+                <td>15</td>
+                <td>16</td>
+                <td>17</td>
+                <td>18</td>
+                <td>19</td>
+            </tr>
+            <tr>
+                <td>20</td>
+                <td>21</td>
+                <td>22</td>
+                <td>23</td>
+                <td>24</td>
+                <td>25</td>
+                <td>26</td>
+            </tr>
+            <tr>
+                <td>27</td>
+                <td>28</td>
+                <td>29</td>
+                <td>30</td>
+                <td>31</td>
+                <td></td>
+                <td></td>
+            </tr> -->
+        </tbody>
+    </table>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            //khoi tao new date
+            var date = new Date();
+            // lay thang hien tai
+            var nowMonth = date.getMonth(); // 0-11
+            // lay nam hien tai
+            var nowYear = date.getFullYear();
+
+            var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            var days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+            // hien thi calendar
+            function showDate(nowYear, nowMonth) {
+                // show nam va thang
+                $('.yearMonth').text(nowYear + ' - ' + (nowMonth + 1));
+                // lay ngay dau tien trong thang: cn,th,tb,tt,tn,ts,tb - 7 ngay trong tuan
+                var firstDay = new Date(nowYear, nowMonth).getDay();
+                // lay so ngay trong 1 thang
+                var dayInMonth = 32 - new Date(nowYear, nowMonth, 32).getDate();
+                // bien khoi tao ngay
+                var startDate = 1;
+                // row in calendar
+                for (let i = 0; i < 5; i++) {
+                    //////
+                    $('.showDay').append('<tr>');
+                    // colum in calendar
+                    for (let j = 0; j < 7; j++) {
+                        // neu o row dau tien va ngay nho hon ngay bat dau
+                        if (i === 0 && j < firstDay) {
+                            $('.showDay').append('<td class="day"></td>');
+                        } else {
+                            // neu ngay vuot qua tong so ngay trong thang
+                            if (startDate > dayInMonth) {
+                                $('.showDay').append('<td class="day"></td>');
+                            } else {
+                                $('.showDay').append('<td class="day" data-day="' + startDate + '"><span>' + startDate + '</span></td>');
+                                // cong them ngay
+                                startDate++;
+                            }
+
+                        }
+
+                    }
+                    //////
+                    $('.showDay').append('</tr>')
+
+                }
+
+            }
+
+            $('.pre').click(function () {
+
+                nowYear = (nowMonth === 0) ? (nowYear - 1) : nowYear;
+                nowMonth = (nowMonth === 0) ? 11 : (nowMonth - 1);
+                $('.showDay').html('');
+                book();
+
+            })
+
+            $('.next').click(function () {
+
+                nowYear = (nowMonth === 11) ? (nowYear + 1) : nowYear;
+                nowMonth = (nowMonth === 11) ? 0 : (nowMonth + 1);
+                $('.showDay').html('');
+                book();
+
+            })
+
+            $('.showDay').on('click', '.day', function () {
+                var day = $(this).data('day');
+                alert(day);
+            })
+
+            function book() {
+                $.ajax({
+                    type: "get",
+                    url: '/calendar',
+                    success: function (data) {
+                        showDate(nowYear, nowMonth);
+
+                        data.forEach(item => {
+                            var bookdate = new Date(item.createBook);
+                            var createDay = bookdate.getDate(),
+                                createMonth = bookdate.getMonth(),
+                                createYear = bookdate.getFullYear();
+                            if (nowMonth == createMonth && nowYear == createYear) {
+                                var length = $('.day').length;
+                                for (let i = 0; i < length; i++) {
+                                    if (createDay == $('.day').eq(i).data('day')) {
+                                        $('.day').eq(i).append('co nguoi dat');
+                                    }
+                                }
+                            }
+                        })
+                    }
+                })
